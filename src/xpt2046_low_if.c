@@ -23,6 +23,9 @@
 #include "xpt2046_low_if.h"
 #include "../../xpt2046_cfg.h"
 
+#include "drivers/peripheral/spi/spi.h"
+#include "drivers/peripheral/gpio/gpio.h"
+
 // For memcpy
 #include "string.h"
 
@@ -80,18 +83,19 @@ typedef xpt2046_spi_status_t (*pf_spi_exchange_t) (const uint8_t * p_tx_data, ui
 // Variables
 ////////////////////////////////////////////////////////////////////////////////
 
-// Spi exchange function
-static pf_spi_exchange_t gpf_spi_exchange;
+/*// Spi exchange function
+static pf_spi_exchange_t gpf_spi_exchange;*/
 
-// SPI handler
-static SPI_HandleTypeDef gh_touch_spi;
+/*// SPI handler
+static SPI_HandleTypeDef gh_touch_spi;*/
 
 ////////////////////////////////////////////////////////////////////////////////
 // Function prototypes
 ////////////////////////////////////////////////////////////////////////////////
-static void 				xpt2046_low_if_gpio_init	(void);
-static xpt2046_status_t 	xpt2046_low_if_spi_init		(void);
-static xpt2046_spi_status_t	xpt2046_low_if_spi_exchange	(const uint8_t * p_tx_data, uint8_t * const p_rx_data, const uint32_t size);
+/*static void 				xpt2046_low_if_gpio_init	(void);
+static xpt2046_status_t 	xpt2046_low_if_spi_init		(void);*/
+
+//static xpt2046_spi_status_t	xpt2046_low_if_spi_exchange	(const uint8_t * p_tx_data, uint8_t * const p_rx_data, const uint32_t size);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions
@@ -108,6 +112,7 @@ xpt2046_status_t xpt2046_low_if_init(void)
 {
 	xpt2046_status_t status = eXPT2046_OK;
 
+/*
 	// Init GPIOs
 	xpt2046_low_if_gpio_init();
 
@@ -116,6 +121,7 @@ xpt2046_status_t xpt2046_low_if_init(void)
 	{
 		status = eXPT2046_ERROR;
 	}
+*/
 
 	return status;
 }
@@ -127,6 +133,7 @@ xpt2046_status_t xpt2046_low_if_init(void)
 * @return 	void
 */
 ////////////////////////////////////////////////////////////////////////////////
+/*
 static void xpt2046_low_if_gpio_init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -174,6 +181,7 @@ static void xpt2046_low_if_gpio_init(void)
 	GPIO_InitStruct.Pull 		= XPT2046_INT__PULL;
 	HAL_GPIO_Init( XPT2046_INT__PORT, &GPIO_InitStruct );
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
@@ -182,7 +190,7 @@ static void xpt2046_low_if_gpio_init(void)
 * @return 		status - Status of operation
 */
 ////////////////////////////////////////////////////////////////////////////////
-static xpt2046_status_t xpt2046_low_if_spi_init(void)
+/*static xpt2046_status_t xpt2046_low_if_spi_init(void)
 {
 	xpt2046_status_t status = eXPT2046_OK;
 
@@ -219,7 +227,7 @@ static xpt2046_status_t xpt2046_low_if_spi_init(void)
 	}
 
 	return status;
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
@@ -231,7 +239,7 @@ static xpt2046_status_t xpt2046_low_if_spi_init(void)
 *	@return		status 		- Status of operation
 */
 ////////////////////////////////////////////////////////////////////////////////
-static xpt2046_spi_status_t	xpt2046_low_if_spi_exchange	(const uint8_t * p_tx_data, uint8_t * const p_rx_data, const uint32_t size)
+/*static xpt2046_spi_status_t	xpt2046_low_if_spi_exchange	(const uint8_t * p_tx_data, uint8_t * const p_rx_data, const uint32_t size)
 {
 	xpt2046_spi_status_t status = eXPT2046_SPI_OK;
 
@@ -241,7 +249,7 @@ static xpt2046_spi_status_t	xpt2046_low_if_spi_exchange	(const uint8_t * p_tx_da
 	}
 
 	return status;
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
@@ -263,9 +271,9 @@ xpt2046_status_t xpt2046_low_if_exchange(const xpt2046_addr_t addr, const xpt204
 	uint8_t tx_data[3];
 	uint16_t rx_data_w;
 
-	// Check if function set
+/*	// Check if function set
 	if ( NULL != gpf_spi_exchange )
-	{
+	{*/
 		// Assemble frame
 		control.U = 0;
 		control.bits.source 	= start;
@@ -277,7 +285,10 @@ xpt2046_status_t xpt2046_low_if_exchange(const xpt2046_addr_t addr, const xpt204
 		// Copy assemble frame
 		tx_data[0] = control.U;
 
-		// CS low
+		// TODO: Change this interface with SPI !!!
+		// TODO: Inteface file must be added !!!
+
+/*		// CS low
 		XPT2046_LOW_IF_CS_LOW();
 
 		// Spi interface
@@ -299,8 +310,23 @@ xpt2046_status_t xpt2046_low_if_exchange(const xpt2046_addr_t addr, const xpt204
 		}
 
 		// CS high
-		XPT2046_LOW_IF_CS_HIGH();
-	}
+		XPT2046_LOW_IF_CS_HIGH();*/
+
+
+		spi_2_transmit( eSPI2_CH_TOUCH, (uint8_t*) &tx_data, 1U, eSPI_CS_LOW_ON_ENTRY );
+		spi_2_receive( eSPI2_CH_TOUCH, (uint8_t*) &rx_data, 2U, eSPI_CS_HIGH_ON_EXIT );
+
+		// NOTE: Big endian
+		rx_data_w = ( rx_data[1] << 8 ) | ( rx_data[2] );
+		//result.U = (uint16_t) (( rx_data[1] << 8 ) | ( rx_data[2] ));
+
+		// Parse received frame
+		memcpy( &result.U, &rx_data_w, 2U );
+
+		// Set result
+		*p_adc_result = result.bits.adc_result;
+
+/*	}
 	else
 	{
 		status = eXPT2046_ERROR;
@@ -308,7 +334,7 @@ xpt2046_status_t xpt2046_low_if_exchange(const xpt2046_addr_t addr, const xpt204
 
 		XPT2046_DBG_PRINT( "SPI interface function not set..." );
 		XPT2046_ASSERT( 0 );
-	}
+	}*/
 
 	return status;
 }
@@ -324,13 +350,17 @@ xpt2046_int_t xpt2046_low_if_get_int(void)
 {
 	xpt2046_int_t touch_int;
 
-	if ( GPIO_PIN_SET == HAL_GPIO_ReadPin( XPT2046_INT__PORT, XPT2046_INT__PIN ))
+	//if ( GPIO_PIN_SET == HAL_GPIO_ReadPin( XPT2046_INT__PORT, XPT2046_INT__PIN ))
+
+	// HW inverter used
+	//if ( eGPIO_LOW == gpio_get( eGPIO_T_IRQ ))
+	if ( eGPIO_HIGH == gpio_get( eGPIO_T_IRQ ))
 	{
-		touch_int = eXPT2046_INT_OFF;
+		touch_int = eXPT2046_INT_ON;
 	}
 	else
 	{
-		touch_int = eXPT2046_INT_ON;
+		touch_int = eXPT2046_INT_OFF;
 	}
 
 	return touch_int;
