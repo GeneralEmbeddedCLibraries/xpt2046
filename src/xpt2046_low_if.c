@@ -271,70 +271,29 @@ xpt2046_status_t xpt2046_low_if_exchange(const xpt2046_addr_t addr, const xpt204
 	uint8_t tx_data[3];
 	uint16_t rx_data_w;
 
-/*	// Check if function set
-	if ( NULL != gpf_spi_exchange )
-	{*/
-		// Assemble frame
-		control.U = 0;
-		control.bits.source 	= start;
-		control.bits.addr 		= addr;
-		control.bits.mode 		= XPT2046_ADC_RESOLUTION;
-		control.bits.ser_dfr 	= XPT2046_REF_MODE;
-		control.bits.pd			= pd_mode;
+	// Assemble frame
+	control.U = 0;
+	control.bits.source 	= start;
+	control.bits.addr 		= addr;
+	control.bits.mode 		= XPT2046_ADC_RESOLUTION;
+	control.bits.ser_dfr 	= XPT2046_REF_MODE;
+	control.bits.pd			= pd_mode;
 
-		// Copy assemble frame
-		tx_data[0] = control.U;
+	// Copy assemble frame
+	tx_data[0] = control.U;
 
-		// TODO: Change this interface with SPI !!!
-		// TODO: Inteface file must be added !!!
+	// Interface with the device
+	// TODO: Move to if...
+	spi_2_transmit_receive( eSPI2_CH_TOUCH, (uint8_t*) &tx_data, (uint8_t*) &rx_data, 3U, ( eSPI_CS_LOW_ON_ENTRY | eSPI_CS_HIGH_ON_EXIT ));
 
-/*		// CS low
-		XPT2046_LOW_IF_CS_LOW();
+	// NOTE: Big endian
+	rx_data_w = ( rx_data[1] << 8 ) | ( rx_data[2] );
 
-		// Spi interface
-		if ( eXPT2046_SPI_OK == gpf_spi_exchange((uint8_t*) &tx_data, (uint8_t*) &rx_data, 3U ) )
-		{
-			// NOTE: Big endian
-			rx_data_w = ( rx_data[1] << 8 ) | ( rx_data[2] );
+	// Parse received frame
+	memcpy( &result.U, &rx_data_w, 2U );
 
-			// Parse received frame
-			memcpy( &result.U, &rx_data_w, 2U );
-
-			// Set result
-			*p_adc_result = result.bits.adc_result;
-		}
-		else
-		{
-			status = eXPT2046_ERROR;
-			*p_adc_result = 0;
-		}
-
-		// CS high
-		XPT2046_LOW_IF_CS_HIGH();*/
-
-
-		spi_2_transmit( eSPI2_CH_TOUCH, (uint8_t*) &tx_data, 1U, eSPI_CS_LOW_ON_ENTRY );
-		spi_2_receive( eSPI2_CH_TOUCH, (uint8_t*) &rx_data, 2U, eSPI_CS_HIGH_ON_EXIT );
-
-		// NOTE: Big endian
-		rx_data_w = ( rx_data[1] << 8 ) | ( rx_data[2] );
-		//result.U = (uint16_t) (( rx_data[1] << 8 ) | ( rx_data[2] ));
-
-		// Parse received frame
-		memcpy( &result.U, &rx_data_w, 2U );
-
-		// Set result
-		*p_adc_result = result.bits.adc_result;
-
-/*	}
-	else
-	{
-		status = eXPT2046_ERROR;
-		*p_adc_result = 0;
-
-		XPT2046_DBG_PRINT( "SPI interface function not set..." );
-		XPT2046_ASSERT( 0 );
-	}*/
+	// Set result
+	*p_adc_result = result.bits.adc_result;
 
 	return status;
 }
@@ -350,10 +309,9 @@ xpt2046_int_t xpt2046_low_if_get_int(void)
 {
 	xpt2046_int_t touch_int;
 
-	//if ( GPIO_PIN_SET == HAL_GPIO_ReadPin( XPT2046_INT__PORT, XPT2046_INT__PIN ))
+	// TODO: Move to if
 
 	// HW inverter used
-	//if ( eGPIO_LOW == gpio_get( eGPIO_T_IRQ ))
 	if ( eGPIO_HIGH == gpio_get( eGPIO_T_IRQ ))
 	{
 		touch_int = eXPT2046_INT_ON;
