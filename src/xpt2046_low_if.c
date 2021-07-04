@@ -107,7 +107,7 @@ xpt2046_status_t xpt2046_low_if_exchange(const xpt2046_addr_t addr, const xpt204
 	tx_data[0] = control.U;
 
 	// Interface with the device
-	status = xpt2046_if_transmit_receive((uint8_t*) &tx_data, (uint8_t*) &rx_data, 3U, ( eSPI_CS_LOW_ON_ENTRY | eSPI_CS_HIGH_ON_EXIT ));
+	status = xpt2046_if_spi_transmit_receive((uint8_t*) &tx_data, (uint8_t*) &rx_data, 3U, ( eSPI_CS_LOW_ON_ENTRY | eSPI_CS_HIGH_ON_EXIT ));
 
 	if ( eXPT2046_OK == status )
 	{
