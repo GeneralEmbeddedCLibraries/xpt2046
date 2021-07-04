@@ -29,6 +29,13 @@
 // Definitions
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * 	Module version
+ */
+#define XPT2046_VER_MAJOR		( 1 )
+#define XPT2046_VER_MINOR		( 0 )
+#define XPT2046_VER_DEVELOP		( 0 )
+
 // General status
 typedef enum
 {

@@ -2,12 +2,13 @@
  Version 1.0.0 (04.07.2021)
 ============================================================
  Brief:
+ - Initial release
+ 
+ Features:
  - Reading touch location
  - Touch interrupt trigger
  - Calibration of offset, scale and rotation
- 
- Features:
- -   
+ - Module version
    
  Todo:
  -
