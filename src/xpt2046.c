@@ -15,13 +15,6 @@
 */
 ////////////////////////////////////////////////////////////////////////////////
 
-
-/**
- * 	 TODO:
- *
- * 	 	- change touch filering with filter module
- */
-
 ////////////////////////////////////////////////////////////////////////////////
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
@@ -109,6 +102,25 @@ typedef struct
 	} state;
 } xpt2046_fsm_t;
 
+#if ( 1 == XPT2046_FILTER_EN )
+
+	// Filter data
+	typedef struct
+	{
+		uint16_t samp_buf[ XPT2046_FILTER_WIN_SAMP ];
+		uint32_t sum;
+	} xpt2046_filt_data_t;
+
+	// Filter objects
+	typedef struct
+	{
+		xpt2046_filt_data_t x;
+		xpt2046_filt_data_t y;
+		xpt2046_filt_data_t force;
+	} xpt2046_filter_t;
+
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // Variables
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,25 +159,6 @@ ili9488_circ_attr_t g_cal_circ_attr =
 	.fill.enable		= true,
 };
 
-#if ( XPT2046_FILTER_EN )
-
-	// Filter data
-	typedef struct
-	{
-		uint16_t samp_buf[ XPT2046_FILTER_WIN_SAMP ];
-		uint32_t sum;
-	} xpt2046_filt_data_t;
-
-	// Filter objects
-	typedef struct
-	{
-		xpt2046_filt_data_t x;
-		xpt2046_filt_data_t y;
-		xpt2046_filt_data_t force;
-	} xpt2046_filter_t;
-
-#endif
-
 // Initialization done flag
 static bool gb_is_init = false;
 
@@ -178,7 +171,6 @@ static void 	xpt2046_cal_hndl					(void);
 static void 	xpt2046_calculate_factors			(int32_t * p_factors, const xpt2046_point_t * const p_Dp, const xpt2046_point_t * const p_Tp);
 static int32_t 	xpt2046_limit_cal_Y_data			(const int32_t unlimited_data);
 static int32_t 	xpt2046_limit_cal_X_data			(const int32_t unlimited_data);
-
 
 static void xpt2046_fms_manager			(void);
 static void xpt2046_fsm_normal			(void);
@@ -209,24 +201,21 @@ xpt2046_status_t xpt2046_init(void)
 {
 	xpt2046_status_t status = eXPT2046_OK;
 
-	if ( false == gb_is_init )
-	{
-		// Initialize low level drivers
-		if ( eXPT2046_OK != xpt2046_if_init())
-		{
-			status = eXPT2046_ERROR;
-		}
-		else
-		{
-			gb_is_init = true;
-		}
+	XPT2046_ASSERT( false == gb_is_init );
 
-		// Initialize FSM
-		g_cal_fsm.state.cur = eXPT2046_FSM_NORMAL;
-		g_cal_fsm.state.next = eXPT2046_FSM_NORMAL;
-		g_cal_fsm.time.duration = 0;
-		g_cal_fsm.time.first_entry = false;
-	}
+	// Initialize low level drivers
+	status = xpt2046_if_init();
+
+	// Initialize FSM
+	g_cal_fsm.state.cur = eXPT2046_FSM_NORMAL;
+	g_cal_fsm.state.next = eXPT2046_FSM_NORMAL;
+	g_cal_fsm.time.duration = 0;
+	g_cal_fsm.time.first_entry = false;
+
+	// Init done
+	gb_is_init = true;
+
+	XPT2046_ASSERT( status == eXPT2046_OK );
 
 	return status;
 }
@@ -258,19 +247,26 @@ xpt2046_status_t xpt2046_get_touch(uint16_t * const p_page, uint16_t * const p_c
 {
 	xpt2046_status_t status = eXPT2046_OK;
 
-	if ( true == gb_is_init )
+	XPT2046_ASSERT( true == gb_is_init );
+
+	if ( NULL != p_page )
 	{
 		*p_page 	= g_touch.page;
-		*p_col 		= g_touch.col;
-		*p_force 	= g_touch.force;
-		*p_pressed 	= g_touch.pressed;
 	}
-	else
-	{
-		status = eXPT2046_ERROR;
 
-		XPT2046_DBG_PRINT( "Module not initialized!" );
-		XPT2046_ASSERT( 0 );
+	if ( NULL != p_col )
+	{
+		*p_col 		= g_touch.col;
+	}
+
+	if ( NULL != p_force )
+	{
+		*p_force 	= g_touch.force;
+	}
+
+	if ( NULL != p_pressed )
+	{
+		*p_pressed 	= g_touch.pressed;
 	}
 
 	return status;
@@ -292,31 +288,30 @@ void xpt2046_hndl(void)
 	uint16_t force;
 	bool is_pressed;
 
-	if ( true == gb_is_init )
+	XPT2046_ASSERT( true == gb_is_init );
+
+	// Get data
+	xpt2046_read_data_from_controler( &X, &Y, &force, &is_pressed );
+
+	// Apply filter
+	#if ( 1 == XPT2046_FILTER_EN )
+		xpt2046_filter_data( &X, &Y, &force, &is_pressed );
+	#endif
+
+	// Apply calibration
+	if ( g_cal_data.done )
 	{
-		// Get data
-		xpt2046_read_data_from_controler( &X, &Y, &force, &is_pressed );
-
-		// Apply filter
-		#if ( XPT2046_FILTER_EN )
-			xpt2046_filter_data( &X, &Y, &force, &is_pressed );
-		#endif
-
-		// Apply calibration
-		if ( g_cal_data.done )
-		{
-			xpt2046_calibrate_data( &X, &Y, (const int32_t*)&g_cal_data.factors );
-		}
-
-		// Store
-		g_touch.page = X;
-		g_touch.col = Y;
-		g_touch.force = force;
-		g_touch.pressed = is_pressed;
-
-		// Calibration handler
-		xpt2046_cal_hndl();
+		xpt2046_calibrate_data( &X, &Y, (const int32_t*)&g_cal_data.factors );
 	}
+
+	// Store
+	g_touch.page = X;
+	g_touch.col = Y;
+	g_touch.force = force;
+	g_touch.pressed = is_pressed;
+
+	// Calibration handler
+	xpt2046_cal_hndl();
 }
 
 
@@ -346,11 +341,9 @@ static void xpt2046_read_data_from_controler(uint16_t * const p_X, uint16_t * co
 
 		// Get X & Y position
 		status |= xpt2046_low_if_exchange( eXPT2046_ADDR_X_POS, eXPT2046_PD_DEVICE_FULLY_ON, eXPT2046_START_ON, p_X );
-		//status |= xpt2046_low_if_exchange( eXPT2046_ADDR_Y_POS, eXPT2046_PD_POWER_DOWN, eXPT2046_START_ON, p_Y );
 		status |= xpt2046_low_if_exchange( eXPT2046_ADDR_Y_POS, eXPT2046_PD_DEVICE_FULLY_ON, eXPT2046_START_ON, p_Y );
 
 		// Get pressure data
-		//status |= xpt2046_low_if_exchange( eXPT2046_ADDR_Z1_POS, eXPT2046_PD_POWER_DOWN, eXPT2046_START_ON, &Z1 );
 		status |= xpt2046_low_if_exchange( eXPT2046_ADDR_Z1_POS, eXPT2046_PD_DEVICE_FULLY_ON, eXPT2046_START_ON, &Z1 );
 		status |= xpt2046_low_if_exchange( eXPT2046_ADDR_YN, eXPT2046_PD_VREF_ON, eXPT2046_START_ON, &Z2 );
 
@@ -378,8 +371,6 @@ static void xpt2046_read_data_from_controler(uint16_t * const p_X, uint16_t * co
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *			Get touch data
-*
-*	TODO: Replace this filter with module!
 *
 * @param[out]	p_X		- Pointer to x coordinate
 * @param[out]	p_Y		- Pointer to y coordinate
