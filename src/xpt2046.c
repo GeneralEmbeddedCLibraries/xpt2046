@@ -18,9 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Includes
 ////////////////////////////////////////////////////////////////////////////////
-#include "stm32f7xx_hal.h"
-#include "stdint.h"
-#include "string.h"
+#include <stdint.h>
+#include <string.h>
 
 #include "xpt2046.h"
 #include "xpt2046_low_if.h"
@@ -29,7 +28,6 @@
 
 // Display
 #include "drivers/devices/ili9488/ili9488/src/ili9488.h"
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Definitions
@@ -314,15 +312,15 @@ void xpt2046_hndl(void)
 	xpt2046_cal_hndl();
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *		Read data from controller
 *
-* @param[out]	p_X		- Pointer to x coordinate
-* @param[out]	p_Y		- Pointer to y coordinate
-* @param[out]	p_force	- Pointer to pressure (force) of touch
-* @return 		status	- Status of operation
+* @param[out]	p_X				- Pointer to x coordinate
+* @param[out]	p_Y				- Pointer to y coordinate
+* @param[out]	p_force			- Pointer to pressure (force) of touch
+* @param[out]	p_is_pressed	- Pointer to pressed state
+* @return 		status			- Status of operation
 */
 ////////////////////////////////////////////////////////////////////////////////
 static void xpt2046_read_data_from_controler(uint16_t * const p_X, uint16_t * const p_Y, uint16_t * const p_force, bool * const p_is_pressed)
@@ -375,6 +373,7 @@ static void xpt2046_read_data_from_controler(uint16_t * const p_X, uint16_t * co
 * @param[out]	p_X		- Pointer to x coordinate
 * @param[out]	p_Y		- Pointer to y coordinate
 * @param[out]	p_force	- Pointer to pressure (force) of touch
+* @param[out]	p_touch	- Pointer to touch detected state
 * @return 		status	- Status of operation
 */
 ////////////////////////////////////////////////////////////////////////////////
@@ -775,7 +774,7 @@ static void xpt2046_clear_cal_point(const xpt2046_points_t px)
 /**
 *		Calculate calibration data
 *
-* @param[out]	p_factor 	- Pointer to cal data
+* @param[out]	p_factors 	- Pointer to cal data
 * @param[in]	p_Dp	 	- Pointer to display points
 * @param[in]	p_Tp	 	- Pointer to touch points
 * @return 		void
@@ -944,4 +943,3 @@ void xpt2046_get_cal_factors(const int32_t * p_factors)
 * @} <!-- END GROUP -->
 */
 ////////////////////////////////////////////////////////////////////////////////
-

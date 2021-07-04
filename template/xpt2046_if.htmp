@@ -38,8 +38,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Function Prototypes
 ////////////////////////////////////////////////////////////////////////////////
-xpt2046_status_t	xpt2046_if_init				(void);
-xpt2046_status_t 	xpt2046_if_transmit_receive	(const uint8_t * p_tx, uint8_t * const p_rx, const uint32_t size, const spi_cs_action_t cs_action);
-bool				xpt2046_if_get_int			(void);
+xpt2046_status_t	xpt2046_if_init					(void);
+xpt2046_status_t 	xpt2046_if_spi_transmit_receive	(const uint8_t * p_tx, uint8_t * const p_rx, const uint32_t size, const spi_cs_action_t cs_action);
+bool				xpt2046_if_get_int				(void);
 
 #endif // _XPT2046_IF_H_

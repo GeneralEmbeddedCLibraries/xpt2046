@@ -1,8 +1,10 @@
 ============================================================
- Version 1.0.0 (xx.xx.2021)
+ Version 1.0.0 (04.07.2021)
 ============================================================
  Brief:
- -
+ - Reading touch location
+ - Touch interrupt trigger
+ - Calibration of offset, scale and rotation
  
  Features:
  -   
