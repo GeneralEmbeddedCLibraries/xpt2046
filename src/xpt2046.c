@@ -25,6 +25,7 @@
 #include "xpt2046.h"
 #include "xpt2046_low_if.h"
 #include "../../xpt2046_cfg.h"
+#include "../../xpt2046_if.h"
 
 // Display
 #include "drivers/devices/ili9488/ili9488/src/ili9488.h"
@@ -203,8 +204,8 @@ xpt2046_status_t xpt2046_init(void)
 
 	if ( false == gb_is_init )
 	{
-		// Initialize GPIOs & SPI
-		if ( eXPT2046_OK != xpt2046_low_if_init())
+		// Initialize low level drivers
+		if ( eXPT2046_OK != xpt2046_if_init())
 		{
 			status = eXPT2046_ERROR;
 		}

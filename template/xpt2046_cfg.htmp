@@ -1,0 +1,150 @@
+////////////////////////////////////////////////////////////////////////////////
+/**
+*@file      xpt2046_cfg.h
+*@brief     Configuration file for ILI9488 driver
+*@author    Ziga Miklosic
+*@date      29.06.2021
+*@version	V1.0.0
+*/
+////////////////////////////////////////////////////////////////////////////////
+/**
+*@addtogroup XPT2046_CFG
+* @{ <!-- BEGIN GROUP -->
+*
+* 	Configurations for XPT2046 driver.
+*/
+////////////////////////////////////////////////////////////////////////////////
+
+#ifndef _XPT2046_CFG_H_
+#define _XPT2046_CFG_H_
+
+////////////////////////////////////////////////////////////////////////////////
+// Includes
+////////////////////////////////////////////////////////////////////////////////
+#include "stdint.h"
+#include "stm32f7xx_hal.h"
+
+#include "project_config.h"
+
+// Debug communication port
+#include "middleware/debug_comm_port/com_dbg.h"
+
+// Graphics
+#include "drivers/devices/ili9488/ili9488/src/ili9488.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Definitions
+////////////////////////////////////////////////////////////////////////////////
+
+// Enable debug mode
+#define XPT2046_DEBUG_EN				( 1 )
+
+
+
+// **********************************************************
+// 	SPI INTERFACE
+// **********************************************************
+#define XPT2046_SPI						( SPI3 )
+#define XPT2046_SPI_BAUDRATE_PSC		( SPI_BAUDRATEPRESCALER_32 )	// NOTE: Max. SPI clock is 2 MHz
+#define XPT2046_SPI_TIMEOUT_MS			( 10 )	// [ms]
+#define XPT2046_SPI_EN_CLK()			__HAL_RCC_SPI3_CLK_ENABLE()
+
+
+
+// **********************************************************
+// 	GPIO PINS
+// **********************************************************
+
+// SPI pins
+#define XPT2046_SCK__PORT				( GPIOC )
+#define XPT2046_SCK__PIN				( GPIO_PIN_10 )
+#define XPT2046_SCK__PULL				( GPIO_NOPULL )
+#define XPT2046_SCK_CLK_EN()			__HAL_RCC_GPIOC_CLK_ENABLE()
+
+#define XPT2046_MISO__PORT				( GPIOC )
+#define XPT2046_MISO__PIN				( GPIO_PIN_11 )
+#define XPT2046_MISO__PULL				( GPIO_NOPULL )
+#define XPT2046_MISO_CLK_EN()			__HAL_RCC_GPIOC_CLK_ENABLE()
+
+#define XPT2046_MOSI__PORT				( GPIOC )
+#define XPT2046_MOSI__PIN				( GPIO_PIN_12 )
+#define XPT2046_MOSI__PULL				( GPIO_NOPULL )
+#define XPT2046_MOSI_CLK_EN()			__HAL_RCC_GPIOC_CLK_ENABLE()
+
+#define XPT2046_CS__PORT				( GPIOC )
+#define XPT2046_CS__PIN					( GPIO_PIN_9 )
+#define XPT2046_CS__PULL				( GPIO_NOPULL )
+#define XPT2046_CS_CLK_EN()				__HAL_RCC_GPIOC_CLK_ENABLE()
+
+// Interrupt line
+#define XPT2046_INT__PORT				( GPIOC )
+#define XPT2046_INT__PIN				( GPIO_PIN_8 )
+#define XPT2046_INT__PULL				( GPIO_NOPULL )
+#define XPT2046_INT_CLK_EN()			__HAL_RCC_GPIOC_CLK_ENABLE()
+
+
+
+
+// **********************************************************
+// 	ADC RESOLUTION
+// **********************************************************
+
+#define XPT2046_ADC_12_BIT				( 0 )
+#define XPT2046_ADC_8_BIT				( 1 )
+#define XPT2046_ADC_RESOLUTION 			( XPT2046_ADC_12_BIT )
+
+
+// **********************************************************
+// 	REFERENCE MODE
+// **********************************************************
+
+#define XPT2046_REF_MODE_DIFFERENTIAL	( 0 )
+#define XPT2046_REF_MODE_SINGLE_ENDED	( 1 )
+#define XPT2046_REF_MODE 				( XPT2046_REF_MODE_DIFFERENTIAL )
+
+
+// **********************************************************
+// 	3 POINT CALIBRATION
+// **********************************************************
+
+// Coordinates
+#define XPT2046_POINT_1_XY				{ 48,  32  }
+#define XPT2046_POINT_2_XY				{ 240, 288 }
+#define XPT2046_POINT_3_XY				{ 432, 160 }
+
+// Point graphics
+// NOTE: For know only rectangle is supported
+#define XPT2046_POINT_COLOR_BG			( eILI9488_COLOR_BLACK )
+#define XPT2046_POINT_COLOR_FG			( eILI9488_COLOR_YELLOW )
+#define XPT2046_POINT_SIZE				( 4 )
+
+// Display limitations
+#define XPT2046_DISPLAY_MAX_X			( 480 )
+#define XPT2046_DISPLAY_MAX_Y			( 320 )
+
+
+// **********************************************************
+// 	TOUCH FILTER (moving average)
+// **********************************************************
+
+// Enable touch filter(0/1)
+#define XPT2046_FILTER_EN				( 1 )
+
+// Filter window in samples
+#define XPT2046_FILTER_WIN_SAMP			( 8 )
+
+
+// **********************************************************
+// 	DEBUG COM PORT
+// **********************************************************
+#if ( XPT2046_DEBUG_EN )
+	#define XPT2046_DBG_PRINT( ... )					( com_dbg_print( eCOM_DBG_CH_NONE, (const char*) __VA_ARGS__ ))
+	#define XPT2046_ASSERT(x)							PROJECT_CONFIG_ASSERT( x )
+#else
+	#define XPT2046_DBG_PRINT( ... )					{ ; }
+	#define XPT2046_ASSERT(x)							{ ; }
+#endif
+
+
+#endif // _XPT2046_CFG_H_
