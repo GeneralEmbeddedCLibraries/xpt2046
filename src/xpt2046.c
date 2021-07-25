@@ -1,10 +1,13 @@
+// Copyright (c) 2021 Ziga Miklosic
+// All Rights Reserved
+// This software is under MIT licence (https://opensource.org/licenses/MIT)
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *@file      xpt2046.c
 *@brief     Application layer function for XPT2046 chip
 *@author    Ziga Miklosic
 *@date      29.06.2021
-*@version	V1.0.0
+*@version	V1.0.1
 */
 ////////////////////////////////////////////////////////////////////////////////
 /**
