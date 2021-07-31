@@ -574,10 +574,9 @@ static void xpt2046_fsm_p1_acq(void)
 
 	if ( true == g_cal_fsm.time.first_entry )
 	{
-		// Clear display
-		ili9488_set_background( eILI9488_COLOR_GRAY );
-		ili9488_set_string_pen( eILI9488_COLOR_BLACK, eILI9488_COLOR_GREEN, eILI9488_FONT_20 );
-		ili9488_set_string( "Calibration...", 10, 100 );
+		// Calibration info
+		ili9488_set_string_pen( eILI9488_COLOR_BLACK, eILI9488_COLOR_YELLOW, eILI9488_FONT_20 );
+		ili9488_set_string( "Calibration in progress...", 10, 100 );
 
 		// Set up P1
 		xpt2046_set_cal_point( eXPT2046_CAL_P1 );
@@ -705,6 +704,9 @@ static void xpt2046_fsm_p3_acq(void)
 
 				// Clear point
 				xpt2046_clear_cal_point( eXPT2046_CAL_P3 );
+
+				// User info
+				ili9488_set_string( "Calibration finished ...   ", 10, 100 );
 			}
 		}
 	}
