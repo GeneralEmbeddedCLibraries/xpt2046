@@ -57,7 +57,7 @@ void 				xpt2046_hndl					(void);
 xpt2046_status_t 	xpt2046_get_touch				(uint16_t * const p_page, uint16_t * const p_col, uint16_t * const p_force, bool * const p_pressed);
 xpt2046_status_t 	xpt2046_start_calibration		(void);
 bool				xpt2046_is_calibrated			(void);
-void				xpt2046_set_cal_factors			(const int32_t * const p_factors);
-void				xpt2046_get_cal_factors			(const int32_t * p_factors);
+xpt2046_status_t	xpt2046_set_cal_factors			(const int32_t * const p_factors);
+xpt2046_status_t	xpt2046_get_cal_factors			(const int32_t * p_factors);
 
 #endif // _XPT2046_H_

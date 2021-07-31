@@ -575,7 +575,9 @@ static void xpt2046_fsm_p1_acq(void)
 	if ( true == g_cal_fsm.time.first_entry )
 	{
 		// Clear display
-		ili9488_set_background( eILI9488_COLOR_BLACK );
+		ili9488_set_background( eILI9488_COLOR_GRAY );
+		ili9488_set_string_pen( eILI9488_COLOR_BLACK, eILI9488_COLOR_GREEN, eILI9488_FONT_20 );
+		ili9488_set_string( "Calibration...", 10, 100 );
 
 		// Set up P1
 		xpt2046_set_cal_point( eXPT2046_CAL_P1 );
@@ -919,13 +921,24 @@ bool xpt2046_is_calibrated(void)
 * @return 		status 		- Status of operation
 */
 ////////////////////////////////////////////////////////////////////////////////
-void xpt2046_set_cal_factors(const int32_t * const p_factors)
+xpt2046_status_t xpt2046_set_cal_factors(const int32_t * const p_factors)
 {
-	// Calibration already done some time in past
-	g_cal_data.done = true;
+	xpt2046_status_t status = eXPT2046_OK;
 
-	// Copy factors
-	memcpy( &g_cal_data.factors, p_factors, sizeof( g_cal_data.factors ));
+	if ( NULL != p_factors )
+	{
+		// Calibration already done some time in past
+		g_cal_data.done = true;
+
+		// Copy factors
+		memcpy( &g_cal_data.factors, p_factors, sizeof( g_cal_data.factors ));
+	}
+	else
+	{
+		status = eXPT2046_ERROR;
+	}
+
+	return status;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -936,9 +949,21 @@ void xpt2046_set_cal_factors(const int32_t * const p_factors)
 * @return 		status 		- Status of operation
 */
 ////////////////////////////////////////////////////////////////////////////////
-void xpt2046_get_cal_factors(const int32_t * p_factors)
+xpt2046_status_t xpt2046_get_cal_factors(const int32_t * p_factors)
 {
-	p_factors = (int32_t*) &g_cal_data.factors;
+	xpt2046_status_t status = eXPT2046_OK;
+
+	if ( NULL != p_factors )
+	{
+		// Copy factors
+		memcpy( (void*) p_factors, (void*) &g_cal_data.factors, sizeof( g_cal_data.factors ));
+	}
+	else
+	{
+		status = eXPT2046_ERROR;
+	}
+
+	return status;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
